@@ -9,4 +9,13 @@ sealed class Routes(val route: String) {
         fun createRoute(name: String) = "dashboard/$name"
     }
 
+    object Main : Routes("main/{name}") {
+        fun createRoute(name: String) = "main/$name"
+    }
+
+    // Bottom tabs
+    object Home : Routes("home")
+    object Wallet : Routes("wallet")
+    object Orders : Routes("orders")
+
 }

@@ -8,6 +8,7 @@ import com.skrj.dairyapp.ui.login.LoginScreen
 import com.skrj.dairyapp.ui.login.OtpScreen
 import com.skrj.dairyapp.ui.login.NameScreen
 import com.skrj.dairyapp.ui.dashboard.DashboardScreen
+import com.skrj.dairyapp.ui.main.MainScreen
 
 @Composable
 fun AppNavHost() {
@@ -42,7 +43,7 @@ fun AppNavHost() {
             NameScreen(
                 onNameSaved = { name ->   // 👈 receive name
                     navController.navigate(
-                        Routes.Dashboard.createRoute(name)
+                        Routes.Main.createRoute(name)
                     ) {
                         popUpTo(Routes.Login.route) { inclusive = true }
                     }
@@ -51,8 +52,16 @@ fun AppNavHost() {
         }
 
         // Dashboard
-        composable(Routes.Dashboard.route) {
+        /*composable(Routes.Dashboard.route) {
             DashboardScreen()
+        }*/
+
+        // 🏠 MAIN (Bottom Navigation starts here)
+        composable(Routes.Main.route) { backStackEntry ->
+
+            val name = backStackEntry.arguments?.getString("name") ?: "User"
+
+            MainScreen(name = name)
         }
     }
 }
