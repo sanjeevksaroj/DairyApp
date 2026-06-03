@@ -6,6 +6,8 @@ import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
 import com.skrj.dairyapp.viewmodel.LoginViewModel
 
 @Composable
@@ -36,9 +38,11 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        val activity = LocalContext.current as Activity
+
         Button(
             onClick = {
-                viewModel.onLoginClicked {
+                viewModel.onLoginClicked(activity) {
                     onLoginSuccess()
                 }
             },

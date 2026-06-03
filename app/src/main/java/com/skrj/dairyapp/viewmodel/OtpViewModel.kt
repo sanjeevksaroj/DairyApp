@@ -3,6 +3,7 @@ package com.skrj.dairyapp.viewmodel
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.skrj.dairyapp.data.repository.AuthRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -17,6 +18,17 @@ class OtpViewModel : ViewModel() {
     var timer = mutableStateOf(30)
         private set
 
+    var error = mutableStateOf<String?>(null)
+        private set
+
+    var sessionId = mutableStateOf<String?>(null)
+        private set
+
+    var token = mutableStateOf<String?>(null)
+        private set
+
+    private val repository = AuthRepository()
+
     init {
         startTimer()
     }
@@ -25,22 +37,46 @@ class OtpViewModel : ViewModel() {
         if (value.length <= 6) otp.value = value
     }
 
-    fun verifyOtp(onSuccess: () -> Unit) {
+    fun setSessionId(id: String) {
+        sessionId.value = id
+    }
 
-        if (otp.value.length < 6) return
+    /**
+     * Verify OTP with Retrofit API call
+     */
+    fun verifyOtp(onSuccess: () -> Unit) {
+        if (otp.value.length < 6) {
+            error.value = "Please enter complete OTP"
+            return
+        }
 
         isLoading.value = true
+        error.value = null
 
         viewModelScope.launch {
-            delay(1500) // simulate API
-            isLoading.value = false
-            onSuccess()
+            val sessionIdValue = sessionId.value ?: return@launch
+            val result = repository.verifyOtpAndLogin(sessionIdValue, otp.value)
+
+            result.onSuccess { appToken ->
+                isLoading.value = false
+                token.value = appToken
+                onSuccess()
+            }
+
+            result.onFailure { exception ->
+                isLoading.value = false
+                error.value = "OTP verification failed: ${exception.message}"
+            }
         }
     }
 
     fun resendOtp() {
         timer.value = 30
         startTimer()
+    }
+
+    fun clearError() {
+        error.value = null
     }
 
     private fun startTimer() {

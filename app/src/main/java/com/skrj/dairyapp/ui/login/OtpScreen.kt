@@ -7,11 +7,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.skrj.dairyapp.viewmodel.OtpViewModel
+import com.skrj.dairyapp.viewmodel.NameViewModel
 
 @Composable
 fun OtpScreen(
     onOtpVerified: () -> Unit,
-    viewModel: OtpViewModel = viewModel()
+    viewModel: OtpViewModel = viewModel(),
+    nameViewModel: NameViewModel
 ) {
 
     val otp by viewModel.otp
@@ -40,6 +42,11 @@ fun OtpScreen(
         Button(
             onClick = {
                 viewModel.verifyOtp {
+                    // transfer app token to NameViewModel before navigating
+                    val appToken = viewModel.token.value
+                    if (!appToken.isNullOrBlank()) {
+                        nameViewModel.setToken(appToken)
+                    }
                     onOtpVerified()
                 }
             },

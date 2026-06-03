@@ -1,10 +1,10 @@
 package com.skrj.dairyapp.viewmodel
 
+import android.app.Activity
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.delay
+import com.skrj.dairyapp.data.repository.AuthRepository
 import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
@@ -15,22 +15,47 @@ class LoginViewModel : ViewModel() {
     var isLoading = mutableStateOf(false)
         private set
 
+    var error = mutableStateOf<String?>(null)
+        private set
+
+    var sessionId = mutableStateOf<String?>(null)
+        private set
+
+    private val repository = AuthRepository()
+
     fun onPhoneChange(value: String) {
         phone.value = value
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun onLoginClicked(onSuccess: () -> Unit) {
-
-        if (phone.value.length < 10) return
+    /**
+     * Perform login with Retrofit API call
+     */
+    fun onLoginClicked(activity: Activity, onSuccess: () -> Unit) {
+        if (phone.value.length < 10) {
+            error.value = "Phone number must be at least 10 digits"
+            return
+        }
 
         isLoading.value = true
+        error.value = null
 
-        // Simulate API / Firebase delay
         viewModelScope.launch {
-            delay(1500)
-            isLoading.value = false
-            onSuccess()
+            val result = repository.sendOtp(activity, phone.value)
+
+            result.onSuccess { verificationId ->
+                isLoading.value = false
+                sessionId.value = verificationId
+                onSuccess()
+            }
+
+            result.onFailure { exception ->
+                isLoading.value = false
+                error.value = "Failed to send OTP: ${exception.message}"
+            }
         }
+    }
+
+    fun clearError() {
+        error.value = null
     }
 }
